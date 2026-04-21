@@ -1,7 +1,7 @@
 import { createStaticNavigation, StaticParamList } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FC } from 'react';
-import { BackButton } from '../components/BackButton';
+import { HeaderBackButton } from '../components/HeaderBackButton';
 import { Typography } from '../components/Typography';
 import { useOnboarding } from '../providers/Onboarding';
 import { LoadingScreen } from '../screens/LoadingScreen';
@@ -35,9 +35,7 @@ const RootStack = createNativeStackNavigator({
   groups: {
     Loading: {
       if: useShowLoading,
-      screens: {
-        Loading: LoadingScreen,
-      },
+      screens: { Loading: LoadingScreen },
     },
     Onboarding: {
       if: useShowOnboarding,
@@ -52,16 +50,14 @@ const RootStack = createNativeStackNavigator({
             headerStyle: { backgroundColor: 'transparent' },
             headerTitle: '',
             headerBackVisible: false,
-            headerLeft: () => <BackButton onPress={() => navigation.goBack()} />,
+            headerLeft: () => <HeaderBackButton onPress={() => navigation.goBack()} />,
           }),
         },
       },
     },
     SignUp: {
       if: useShowSignUp,
-      screens: {
-        SignUp: SignUpScreen,
-      },
+      screens: { SignUp: SignUpScreen },
     },
     App: {
       if: useShowApp,
@@ -90,7 +86,7 @@ export type RootStackParamList = StaticParamList<typeof RootStack>;
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList { }
+    interface RootParamList extends RootStackParamList {}
   }
 }
 

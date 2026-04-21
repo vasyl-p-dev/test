@@ -14,13 +14,13 @@ export const ErrorBanner: FC<ErrorBannerProps> = ({ message, onRetry }) => {
       <Typography variant="bodySmall" color="error.color" style={styles.msg}>
         {message}
       </Typography>
-      {onRetry ? (
+      {onRetry && (
         <Pressable onPress={onRetry} hitSlop={10} accessibilityRole="button">
           <Typography variant="captionBig" color="tertiary.color">
             Retry
           </Typography>
         </Pressable>
-      ) : null}
+      )}
     </View>
   );
 };

@@ -1,6 +1,6 @@
 import { FC, useMemo, useRef, useState } from 'react';
 import { LayoutChangeEvent, PanResponder, StyleSheet, View } from 'react-native';
-import PagerView from 'react-native-pager-view';
+import { usePagerView } from 'react-native-pager-view';
 import type { StaticScreenProps } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { Button } from '../components/Button';
@@ -39,15 +39,21 @@ const slides: Slide[] = [
 const SWIPE_DISTANCE = 40;
 
 export const OnboardingScreen: FC<OnboardingScreenProps> = () => {
-  const [index, setIndex] = useState(0);
+  const {
+    ref: pagerRef,
+    activePage,
+    setPage,
+    AnimatedPagerView,
+    onPageSelected,
+  } = usePagerView({ pagesAmount: slides.length });
+
   const [textHeight, setTextHeight] = useState<number | undefined>(undefined);
-  const pagerRef = useRef<PagerView>(null);
   const indexRef = useRef(0);
-  indexRef.current = index;
+  indexRef.current = activePage;
   const { setOnboardingFinished } = useOnboarding();
   const navigation = useNavigation();
 
-  const isLast = index === slides.length - 1;
+  const isLast = activePage === slides.length - 1;
 
   const finish = async () => {
     await setOnboardingFinished();
@@ -56,7 +62,7 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = () => {
   };
 
   const next = () => {
-    isLast ? finish() : pagerRef.current?.setPage(index + 1);
+    isLast ? finish() : setPage(activePage + 1);
   };
 
   const onMeasured = (e: LayoutChangeEvent) => {
@@ -72,11 +78,11 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = () => {
         onPanResponderRelease: (_, g) => {
           if (Math.abs(g.dx) < SWIPE_DISTANCE) return;
           const i = indexRef.current;
-          if (g.dx < 0 && i < slides.length - 1) pagerRef.current?.setPage(i + 1);
-          else if (g.dx > 0 && i > 0) pagerRef.current?.setPage(i - 1);
+          if (g.dx < 0 && i < slides.length - 1) setPage(i + 1);
+          else if (g.dx > 0 && i > 0) setPage(i - 1);
         },
       }).panHandlers,
-    [],
+    [setPage],
   );
 
   return (
@@ -91,30 +97,30 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = () => {
         />
       </View>
 
-      <PagerView
+      <AnimatedPagerView
         ref={pagerRef}
         style={styles.pager}
         initialPage={0}
-        onPageSelected={(e) => setIndex(e.nativeEvent.position)}
+        onPageSelected={onPageSelected}
       >
         {slides.map((_, i) => (
           <View key={i} style={styles.page}>
             <OnboardingIllustration />
           </View>
         ))}
-      </PagerView>
+      </AnimatedPagerView>
 
       <Card variant="hero" style={styles.card} {...panHandlers}>
         <View style={[styles.textBlock, { minHeight: textHeight }]}>
           <Typography variant="h2" color="tertiary.color" style={styles.center}>
-            {slides[index].title}
+            {slides[activePage].title}
           </Typography>
           <Typography variant="bodySmall" color="grey.dark" style={[styles.center, styles.body]}>
-            {slides[index].body}
+            {slides[activePage].body}
           </Typography>
         </View>
 
-        <PagerDots count={slides.length} index={index} />
+        <PagerDots count={slides.length} index={activePage} />
         <Button label={isLast ? 'Get Started' : 'Next'} onPress={next} />
       </Card>
 

@@ -21,6 +21,7 @@ export const TextField: FC<TextFieldProps> = ({
   error,
   secure,
   onBlur,
+  onFocus,
   ...rest
 }) => {
   const inputRef = useRef<TextInput>(null);
@@ -46,7 +47,7 @@ export const TextField: FC<TextFieldProps> = ({
           style={styles.input}
           onFocus={(e) => {
             setFocused(true);
-            rest.onFocus?.(e);
+            onFocus?.(e);
           }}
           onBlur={() => {
             setFocused(false);
@@ -54,13 +55,13 @@ export const TextField: FC<TextFieldProps> = ({
           }}
           {...rest}
         />
-        {secure ? (
+        {secure && (
           <Pressable
             onPress={() => setReveal((r) => !r)}
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel={reveal ? 'Hide password' : 'Show password'}
-            style={({ pressed }) => [styles.eye, pressed ? styles.eyePressed : undefined]}
+            style={({ pressed }) => [styles.eye, pressed && styles.eyePressed]}
           >
             <Image
               source={EYE_ICON}
@@ -68,13 +69,13 @@ export const TextField: FC<TextFieldProps> = ({
               resizeMode="contain"
             />
           </Pressable>
-        ) : null}
+        )}
       </Pressable>
-      {error ? (
+      {error && (
         <Typography variant="bodySmall" color="error.color" style={styles.error}>
           {error}
         </Typography>
-      ) : null}
+      )}
     </View>
   );
 };
@@ -86,13 +87,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white.color,
     borderRadius: radii.input,
     paddingHorizontal: spacing.lg,
-    paddingTop: 12,
+    paddingTop: spacing.md,
     paddingBottom: 10,
     justifyContent: 'flex-start',
   },
   boxFocused: { borderWidth: 1, borderColor: colors.tertiary.color },
   boxError: { borderWidth: 1, borderColor: colors.error.color },
-  label: { marginBottom: 4 },
+  label: { marginBottom: spacing.xs },
   input: {
     ...typography.input,
     color: colors.grey.extraDark,

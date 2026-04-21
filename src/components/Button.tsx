@@ -39,9 +39,9 @@ export const Button: FC<ButtonProps> = ({
       style={({ pressed }) => [
         styles.base,
         isPrimaryShape ? styles.primaryShape : styles.secondaryShape,
-        fullWidth ? styles.full : undefined,
+        fullWidth && styles.full,
         { backgroundColor: bg, opacity },
-        pressed && !(disabled || loading) ? styles.pressed : undefined,
+        pressed && !(disabled || loading) && styles.pressed,
         style,
       ]}
     >

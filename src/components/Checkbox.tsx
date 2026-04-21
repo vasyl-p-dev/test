@@ -9,26 +9,24 @@ export interface CheckboxProps {
   accessibilityLabel?: string;
 }
 
-export const Checkbox: FC<CheckboxProps> = ({ checked, onChange, accessibilityLabel }) => {
-  return (
-    <Pressable
-      onPress={() => onChange(!checked)}
-      hitSlop={10}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked }}
-      accessibilityLabel={accessibilityLabel}
-      style={styles.wrap}
-    >
-      <View style={[styles.box, checked && styles.boxChecked]}>
-        {checked ? (
-          <Typography variant="caption" color="white.color">
-            ✓
-          </Typography>
-        ) : null}
-      </View>
-    </Pressable>
-  );
-};
+export const Checkbox: FC<CheckboxProps> = ({ checked, onChange, accessibilityLabel }) => (
+  <Pressable
+    onPress={() => onChange(!checked)}
+    hitSlop={10}
+    accessibilityRole="checkbox"
+    accessibilityState={{ checked }}
+    accessibilityLabel={accessibilityLabel}
+    style={styles.wrap}
+  >
+    <View style={[styles.box, checked && styles.boxChecked]}>
+      {checked && (
+        <Typography variant="caption" color="white.color">
+          ✓
+        </Typography>
+      )}
+    </View>
+  </Pressable>
+);
 
 const styles = StyleSheet.create({
   wrap: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },

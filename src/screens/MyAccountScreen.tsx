@@ -5,23 +5,27 @@ import { BlurView } from 'expo-blur';
 import { FC, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlockRenderer } from '../components/BlockRenderer';
+import { AccountInfo } from '../components/AccountInfo';
+import { AccountTransactions } from '../components/AccountTransactions';
+import { Button } from '../components/Button';
 import { ErrorBanner } from '../components/ErrorBanner';
+import { ProfileHeader } from '../components/ProfileHeader';
 import { Screen } from '../components/Screen';
 import { Spinner } from '../components/Spinner';
+import { Typography } from '../components/Typography';
 import { useGetAccount } from '../hooks/useGetAccount';
 import { useAuthorization } from '../providers/Authorization';
-import { toBlocks } from '../utils/accountBlocks';
+import { spacing } from '../theme';
 
 export interface MyAccountScreenProps extends StaticScreenProps<undefined> { }
 
 export const MyAccountScreen: FC<MyAccountScreenProps> = () => {
-  const headerHeight = useHeaderHeight();
-  const insets = useSafeAreaInsets();
-
   const navigation = useNavigation();
   const { logout } = useAuthorization();
   const { data, loading, error, fetch } = useGetAccount();
+
+  const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -29,42 +33,62 @@ export const MyAccountScreen: FC<MyAccountScreenProps> = () => {
     fetch();
   }, [fetch]);
 
-  const onLogout = useCallback(() => {
-    logout();
-  }, [logout]);
-
-  // Inject the animated blur backdrop into React Navigation's header.
   useLayoutEffect(() => {
     navigation.setOptions({
       headerBackground: () => <HeaderBackdrop scrollY={scrollY} />,
     });
   }, [navigation, scrollY]);
 
+  const onLogout = useCallback(() => {
+    logout();
+  }, [logout]);
+
   if (loading) {
     return (
       <View style={styles.center}>
         <Spinner />
       </View>
-    )
+    );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <View style={styles.center}>
+        <Typography variant="bodySmall" color="grey.dark">
+          No account data available
+        </Typography>
+      </View>
+    );
+  }
 
   return (
     <Screen edges={[]}>
       <Animated.ScrollView
         contentContainerStyle={[
-          styles.scroll,
-          { paddingTop: headerHeight + 16, paddingBottom: insets.bottom + 24 },
+          styles.container,
+          {
+            paddingTop: headerHeight + spacing.base,
+            paddingBottom: insets.bottom + spacing.xl,
+          },
         ]}
         showsVerticalScrollIndicator={false}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-          useNativeDriver: true,
-        })}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
         scrollEventThrottle={16}
       >
-        {error && <ErrorBanner message={error} onRetry={fetch} />}
-        <BlockRenderer blocks={toBlocks(data)} onLogout={onLogout} />
+        {!data && error && <ErrorBanner message={error} onRetry={fetch} />}
+
+        <ProfileHeader />
+        <AccountInfo data={data} />
+        <AccountTransactions
+          transactions={data.transactions}
+          currency={data.currency}
+        />
+        <View style={styles.logout}>
+          <Button label="Log out" onPress={onLogout} />
+        </View>
       </Animated.ScrollView>
     </Screen>
   );
@@ -88,6 +112,11 @@ const HeaderBackdrop: FC<HeaderBackdropProps> = ({ scrollY }) => {
 };
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: 20, gap: 32 },
-  center: { paddingVertical: 40, alignItems: 'center' },
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.xl,
+  },
+  center: { paddingVertical: spacing.xxxl, alignItems: 'center' },
+  logout: { marginTop: 'auto' },
 });

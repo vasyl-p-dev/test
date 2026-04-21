@@ -2,35 +2,26 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useHeaderHeight } from '@react-navigation/elements';
 import type { StaticScreenProps } from '@react-navigation/native';
 import { FC } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import {
-  KeyboardAvoidingView,
-  Linking,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { useForm } from 'react-hook-form';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button } from '../components/Button';
-import { Checkbox } from '../components/Checkbox';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { Screen } from '../components/Screen';
-import { TextField } from '../components/TextField';
-import { Typography } from '../components/Typography';
+import { SignUpForm } from '../components/SignUpForm';
+import { SignUpFooter } from '../components/SignUpFooter';
+import { SignUpHeading } from '../components/SignUpHeading';
+import { SignUpTermsCheckbox } from '../components/SignUpTermsCheckbox';
 import { useAuthorization } from '../providers/Authorization';
+import { spacing } from '../theme';
 import { signupSchema, type SignupFormValues } from '../utils/validation';
 
-export interface SignUpScreenProps extends StaticScreenProps<undefined> { }
-
-const STUB_URL = 'https://example.com';
+export interface SignUpScreenProps extends StaticScreenProps<undefined> {}
 
 export const SignUpScreen: FC<SignUpScreenProps> = () => {
   const { state, signUp } = useAuthorization();
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
-  const topPadding = (headerHeight || insets.top) + 32;
+  const topPadding = (headerHeight || insets.top) + spacing.xxl;
   const { control, handleSubmit, formState } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     mode: 'onChange',
@@ -55,122 +46,20 @@ export const SignUpScreen: FC<SignUpScreenProps> = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.heading}>
-            <Typography variant="h1" color="tertiary.color">
-              Create account
-            </Typography>
-            <Typography variant="body" color="grey.dark">
-              Complete the sign up to get started
-            </Typography>
-          </View>
+          <SignUpHeading />
 
           {state.error && <ErrorBanner message={state.error} onRetry={submit} />}
 
-          <View style={styles.fields}>
-            <Controller
-              control={control}
-              name="name"
-              render={({ field: { value, onChange, onBlur }, fieldState }) => (
-                <TextField
-                  label="Name"
-                  value={value ?? ''}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={fieldState.isTouched ? fieldState.error?.message : undefined}
-                  autoCapitalize="words"
-                  autoComplete="name"
-                  textContentType="name"
-                  returnKeyType="next"
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { value, onChange, onBlur }, fieldState }) => (
-                <TextField
-                  label="Email"
-                  value={value ?? ''}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={fieldState.isTouched ? fieldState.error?.message : undefined}
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  keyboardType="email-address"
-                  textContentType="emailAddress"
-                  returnKeyType="next"
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { value, onChange, onBlur }, fieldState }) => (
-                <TextField
-                  label="Password"
-                  value={value ?? ''}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={fieldState.isTouched ? fieldState.error?.message : undefined}
-                  secure
-                  autoCapitalize="none"
-                  autoComplete="password-new"
-                  textContentType="newPassword"
-                  returnKeyType="done"
-                />
-              )}
-            />
-          </View>
+          <SignUpForm control={control} />
 
-          <Controller
-            control={control}
-            name="acceptTos"
-            render={({ field: { value, onChange }, fieldState }) => (
-              <View style={styles.tosWrap}>
-                <View style={styles.tosRow}>
-                  <Checkbox
-                    checked={!!value}
-                    onChange={onChange}
-                    accessibilityLabel="Accept terms of service"
-                  />
-                  <Typography variant="bodySmall" style={styles.tosText}>
-                    By signing up, you agree to the{' '}
-                    <Typography
-                      variant="bodySmall"
-                      color="tertiary.color"
-                      onPress={() => Linking.openURL(STUB_URL)}
-                      suppressHighlighting
-                    >
-                      Terms of Service and Privacy Policy
-                    </Typography>
-                  </Typography>
-                </View>
-                {fieldState.error ? (
-                  <Typography variant="bodySmall" color="error.color" style={styles.tosError}>
-                    {fieldState.error.message}
-                  </Typography>
-                ) : null}
-              </View>
-            )}
-          />
+          <SignUpTermsCheckbox control={control} />
         </ScrollView>
 
-        <View style={styles.bottom}>
-          <Pressable onPress={() => Linking.openURL(STUB_URL)} hitSlop={10}>
-            <Typography variant="bodySmall" style={styles.signIn}>
-              Already have an account?{' '}
-              <Typography variant="bodySmall" color="tertiary.color">
-                Sign in
-              </Typography>
-            </Typography>
-          </Pressable>
-          <Button
-            label="Create account"
-            onPress={submit}
-            loading={submitting}
-            disabled={disableSubmit}
-          />
-        </View>
+        <SignUpFooter
+          onSubmit={submit}
+          submitting={submitting}
+          disableSubmit={disableSubmit}
+        />
       </KeyboardAvoidingView>
     </Screen>
   );
@@ -179,22 +68,8 @@ export const SignUpScreen: FC<SignUpScreenProps> = () => {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-    gap: 32,
-  },
-  heading: { gap: 8 },
-  fields: { gap: 16 },
-  tosWrap: { marginTop: -16 },
-  tosRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  tosText: { flex: 1 },
-  tosError: { marginTop: 4, marginLeft: 32 },
-  bottom: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  signIn: {
-    textAlign: 'center',
-    paddingVertical: 16,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    gap: spacing.xxl,
   },
 });
