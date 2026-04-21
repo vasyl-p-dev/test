@@ -1,14 +1,15 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { SignupResponse } from '../api/signup';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { SignupResponse } from "../api/signup";
 
-// Mirrors the authentication + onboarding services. The authorization payload
-// is what the server sent back describing the authenticated user's access:
-// permissions, instructions (nextStep), and welcome message. Stored under a
-// dedicated AsyncStorage key. No React, no side effects beyond AsyncStorage.
-const AUTHORIZATION_STORAGE_KEY = '@app/authorization';
+const AUTHORIZATION_STORAGE_KEY = "@app/authorization";
 
-export async function setAuthorization(response: SignupResponse): Promise<void> {
-  await AsyncStorage.setItem(AUTHORIZATION_STORAGE_KEY, JSON.stringify(response));
+export async function setAuthorization(
+  response: SignupResponse,
+): Promise<void> {
+  await AsyncStorage.setItem(
+    AUTHORIZATION_STORAGE_KEY,
+    JSON.stringify(response),
+  );
 }
 
 export async function getAuthorization(): Promise<SignupResponse | null> {
@@ -27,13 +28,16 @@ export async function clearAuthorization(): Promise<void> {
 }
 
 function isSignupResponse(value: unknown): value is SignupResponse {
-  if (!value || typeof value !== 'object') return false;
-  if (!('message' in value) || typeof value.message !== 'string') return false;
-  if (!('nextStep' in value) || typeof value.nextStep !== 'string') return false;
-  if (!('basicAuthCredentials' in value)) return false;
+  if (!value || typeof value !== "object") return false;
+  if (!("message" in value) || typeof value.message !== "string") return false;
+  if (!("nextStep" in value) || typeof value.nextStep !== "string")
+    return false;
+  if (!("basicAuthCredentials" in value)) return false;
   const creds = value.basicAuthCredentials;
-  if (!creds || typeof creds !== 'object') return false;
-  if (!('username' in creds) || typeof creds.username !== 'string') return false;
-  if (!('password' in creds) || typeof creds.password !== 'string') return false;
+  if (!creds || typeof creds !== "object") return false;
+  if (!("username" in creds) || typeof creds.username !== "string")
+    return false;
+  if (!("password" in creds) || typeof creds.password !== "string")
+    return false;
   return true;
 }

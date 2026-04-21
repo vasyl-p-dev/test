@@ -50,9 +50,6 @@ async function request<T>(
   init: RequestInit,
   { headers, timeoutMs }: RequestOptions,
 ): Promise<T> {
-  // Auth token is fetched from the authentication service on every call — no
-  // in-memory cache here, no direct AsyncStorage access. The service hands
-  // back the raw token string; the `Basic ` scheme prefix is built locally.
   const token = await getAuthenticationToken();
   const authHeader = token ? `Basic ${token}` : null;
 

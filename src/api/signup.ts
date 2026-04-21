@@ -1,4 +1,4 @@
-import { post } from '../services/httpClient';
+import { post } from "../services/httpClient";
 
 export interface SignupPayload {
   name: string;
@@ -18,6 +18,5 @@ export interface SignupResponse {
 }
 
 export function signup(payload: SignupPayload): Promise<SignupResponse> {
-  // Generics mirror the wire shape: <Request body, Response body>.
-  return post<SignupPayload, SignupResponse>('/signup', payload);
+  return post<SignupPayload, SignupResponse>("/signup", payload);
 }

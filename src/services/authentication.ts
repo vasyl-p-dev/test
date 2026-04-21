@@ -1,9 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// This service's only responsibility is persisting the auth *token* — an opaque
-// string provided by the caller. It does not know about the `Basic ` scheme,
-// the `Authorization` header name, or base64 encoding. Those concerns live with
-// the caller (token producer) and the httpClient (header builder).
 const AUTHENTICATION_STORAGE_KEY = "@app/authentication";
 
 export async function setAuthenticationToken(

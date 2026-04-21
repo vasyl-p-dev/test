@@ -1,7 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Mirrors the authentication service: single responsibility is persisting the
-// "onboarding finished" flag. No React, no side effects beyond AsyncStorage.
 const ONBOARDING_STORAGE_KEY = "@app/onboarding";
 
 export async function finishOnboarding(): Promise<void> {

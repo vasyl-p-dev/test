@@ -1,5 +1,5 @@
-import { ApiError, get } from '../services/httpClient';
-import type { SignupResponse } from './signup';
+import { ApiError, get } from "../services/httpClient";
+import type { SignupResponse } from "./signup";
 
 export interface AccountTransaction {
   name: string;
@@ -17,13 +17,16 @@ export interface AccountResponse {
   transactions: AccountTransaction[];
 }
 
-// The endpoint is discovered at runtime from the signup response's `nextStep`
-// instruction. Auth is attached by the httpClient automatically (reads the
-// token from the authentication service).
-export async function getMyAccount(response: SignupResponse): Promise<AccountResponse> {
+export async function getMyAccount(
+  response: SignupResponse,
+): Promise<AccountResponse> {
   const endpoint = extractEndpoint(response.nextStep);
   if (!endpoint) {
-    throw new ApiError(0, 'Could not determine account endpoint from signup response.', null);
+    throw new ApiError(
+      0,
+      "Could not determine account endpoint from signup response.",
+      null,
+    );
   }
   return get<AccountResponse>(endpoint);
 }
