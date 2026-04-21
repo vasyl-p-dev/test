@@ -1,7 +1,6 @@
 import { useHeaderHeight } from '@react-navigation/elements';
 import type { StaticScreenProps } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
 import { FC, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +8,7 @@ import { AccountInfo } from '../components/AccountInfo';
 import { AccountTransactions } from '../components/AccountTransactions';
 import { Button } from '../components/Button';
 import { ErrorBanner } from '../components/ErrorBanner';
+import { HeaderBackdrop } from '../components/HeaderBackdrop';
 import { ProfileHeader } from '../components/ProfileHeader';
 import { Screen } from '../components/Screen';
 import { Spinner } from '../components/Spinner';
@@ -91,23 +91,6 @@ export const MyAccountScreen: FC<MyAccountScreenProps> = () => {
         </View>
       </Animated.ScrollView>
     </Screen>
-  );
-};
-
-interface HeaderBackdropProps {
-  scrollY: Animated.Value;
-}
-
-const HeaderBackdrop: FC<HeaderBackdropProps> = ({ scrollY }) => {
-  const opacity = scrollY.interpolate({
-    inputRange: [0, 24],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
-  return (
-    <Animated.View style={[StyleSheet.absoluteFill, { opacity }]} pointerEvents="none">
-      <BlurView intensity={30} tint="light" style={StyleSheet.absoluteFill} />
-    </Animated.View>
   );
 };
 
