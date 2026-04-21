@@ -2,6 +2,7 @@ import { FC, useMemo, useRef, useState } from 'react';
 import { LayoutChangeEvent, PanResponder, StyleSheet, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import type { StaticScreenProps } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { OnboardingIllustration } from '../components/OnboardingIllustration';
@@ -44,13 +45,14 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = () => {
   const indexRef = useRef(0);
   indexRef.current = index;
   const { setOnboardingFinished } = useOnboarding();
+  const navigation = useNavigation();
 
   const isLast = index === slides.length - 1;
 
   const finish = async () => {
-    // No imperative navigation — setOnboardingFinished updates the onboarding context,
-    // which flips the RootNavigator groups and swaps Onboarding → SignUp.
     await setOnboardingFinished();
+
+    navigation.navigate('OnboardingSignUp');
   };
 
   const next = () => {

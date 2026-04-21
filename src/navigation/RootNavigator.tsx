@@ -1,6 +1,7 @@
 import { createStaticNavigation, StaticParamList } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FC } from 'react';
+import { BackButton } from '../components/BackButton';
 import { Typography } from '../components/Typography';
 import { useOnboarding } from '../providers/Onboarding';
 import { LoadingScreen } from '../screens/LoadingScreen';
@@ -10,34 +11,21 @@ import { MyAccountScreen } from '../screens/MyAccountScreen';
 import { useAuthorization } from '../providers/Authorization';
 import { colors } from '../theme';
 
-// ── Group-visibility hooks ──────────────────────────────────────────────────
-// Each `if` hook gates one group. React Navigation re-evaluates on every
-// context update, so flipping `isOnboardingFinished` or `auth.response` causes the
-// active group to swap automatically — no imperative navigation needed.
+type Stage = 'loading' | 'onboarding' | 'signUp' | 'app';
 
-function useShowLoading(): boolean {
-  const { ready: onboardingReady } = useOnboarding();
+function useStage(): Stage {
+  const { ready: onboardingReady, isFirstLaunch } = useOnboarding();
   const { state: auth } = useAuthorization();
-  return !onboardingReady || !auth.ready;
+  if (!onboardingReady || !auth.ready) return 'loading';
+  if (auth.response) return 'app';
+  if (isFirstLaunch) return 'onboarding';
+  return 'signUp';
 }
 
-function useShowOnboarding(): boolean {
-  const { ready: onboardingReady, isOnboardingFinished } = useOnboarding();
-  const { state: auth } = useAuthorization();
-  return onboardingReady && auth.ready && !isOnboardingFinished && !auth.response;
-}
-
-function useShowSignUp(): boolean {
-  const { ready: onboardingReady, isOnboardingFinished } = useOnboarding();
-  const { state: auth } = useAuthorization();
-  return onboardingReady && auth.ready && isOnboardingFinished && !auth.response;
-}
-
-function useShowApp(): boolean {
-  const { ready: onboardingReady } = useOnboarding();
-  const { state: auth } = useAuthorization();
-  return onboardingReady && auth.ready && Boolean(auth.response);
-}
+const useShowLoading = (): boolean => useStage() === 'loading';
+const useShowOnboarding = (): boolean => useStage() === 'onboarding';
+const useShowSignUp = (): boolean => useStage() === 'signUp';
+const useShowApp = (): boolean => useStage() === 'app';
 
 const RootStack = createNativeStackNavigator({
   screenOptions: {
@@ -55,9 +43,21 @@ const RootStack = createNativeStackNavigator({
       if: useShowOnboarding,
       screens: {
         Onboarding: OnboardingScreen,
+        OnboardingSignUp: {
+          screen: SignUpScreen,
+          options: ({ navigation }) => ({
+            headerShown: true,
+            headerTransparent: true,
+            headerShadowVisible: false,
+            headerStyle: { backgroundColor: 'transparent' },
+            headerTitle: '',
+            headerBackVisible: false,
+            headerLeft: () => <BackButton onPress={() => navigation.goBack()} />,
+          }),
+        },
       },
     },
-    Auth: {
+    SignUp: {
       if: useShowSignUp,
       screens: {
         SignUp: SignUpScreen,

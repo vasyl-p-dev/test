@@ -11,7 +11,6 @@ export interface ToastProps {
   variant: ToastVariant;
   visible: boolean;
   onHide: () => void;
-  /** Total on-screen time in ms (excluding fade animations). */
   durationMs?: number;
 }
 

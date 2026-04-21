@@ -2,80 +2,53 @@ import { useHeaderHeight } from '@react-navigation/elements';
 import type { StaticScreenProps } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
-import { FC, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { AccountResponse } from '../api/account';
-import { getMyAccount } from '../api/account';
 import { BlockRenderer } from '../components/BlockRenderer';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { Screen } from '../components/Screen';
 import { Spinner } from '../components/Spinner';
-import { ApiError } from '../services/httpClient';
+import { useGetAccount } from '../hooks/useGetAccount';
 import { useAuthorization } from '../providers/Authorization';
-import { useToast } from '../providers/Toast';
 import { toBlocks } from '../utils/accountBlocks';
 
-export interface MyAccountScreenProps extends StaticScreenProps<undefined> {}
+export interface MyAccountScreenProps extends StaticScreenProps<undefined> { }
 
 export const MyAccountScreen: FC<MyAccountScreenProps> = () => {
-  const navigation = useNavigation();
-  const { state, logout } = useAuthorization();
-  const toast = useToast();
-  const response = state.response;
-
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
 
-  const [data, setData] = useState<AccountResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const navigation = useNavigation();
+  const { logout } = useAuthorization();
+  const { data, loading, error, fetch } = useGetAccount();
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  const load = useCallback(async () => {
-    if (!response) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await getMyAccount(response);
-      setData(res);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        // Invalid stored token → wipe the authorization data. The RootNavigator's
-        // `if` hooks pick up the update and swap back to the Auth group.
-        toast.error('Your session expired — please sign in again');
-        await logout();
-        return;
-      }
-      const message = err instanceof ApiError ? err.message : 'Could not load account.';
-      toast.error(message);
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }, [response, logout, toast]);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    fetch();
+  }, [fetch]);
 
   const onLogout = useCallback(() => {
     logout();
   }, [logout]);
 
-  // Inject the animated blur backdrop into React Navigation's header. No back
-  // button on My Account — the only way to leave the screen is the in-content
-  // "Log out" button rendered by BlockRenderer.
+  // Inject the animated blur backdrop into React Navigation's header.
   useLayoutEffect(() => {
     navigation.setOptions({
       headerBackground: () => <HeaderBackdrop scrollY={scrollY} />,
     });
   }, [navigation, scrollY]);
 
-  // Guard: the RootNavigator only shows this group when state.response is set,
-  // but we bail out defensively to keep TS + runtime safe.
-  if (!response) return null;
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <Spinner />
+      </View>
+    )
+  }
+
+  if (!data) return null;
 
   return (
     <Screen edges={[]}>
@@ -90,15 +63,8 @@ export const MyAccountScreen: FC<MyAccountScreenProps> = () => {
         })}
         scrollEventThrottle={16}
       >
-        {error ? <ErrorBanner message={error} onRetry={load} /> : null}
-
-        {loading && !data ? (
-          <View style={styles.center}>
-            <Spinner />
-          </View>
-        ) : data ? (
-          <BlockRenderer blocks={toBlocks(data)} onLogout={onLogout} />
-        ) : null}
+        {error && <ErrorBanner message={error} onRetry={fetch} />}
+        <BlockRenderer blocks={toBlocks(data)} onLogout={onLogout} />
       </Animated.ScrollView>
     </Screen>
   );

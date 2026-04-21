@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useHeaderHeight } from '@react-navigation/elements';
 import type { StaticScreenProps } from '@react-navigation/native';
 import { FC } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -11,6 +12,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
 import { Checkbox } from '../components/Checkbox';
 import { ErrorBanner } from '../components/ErrorBanner';
@@ -18,53 +20,38 @@ import { Screen } from '../components/Screen';
 import { TextField } from '../components/TextField';
 import { Typography } from '../components/Typography';
 import { useAuthorization } from '../providers/Authorization';
-import { useToast } from '../providers/Toast';
 import { signupSchema, type SignupFormValues } from '../utils/validation';
 
-export interface SignUpScreenProps extends StaticScreenProps<undefined> {}
+export interface SignUpScreenProps extends StaticScreenProps<undefined> { }
 
 const STUB_URL = 'https://example.com';
 
 export const SignUpScreen: FC<SignUpScreenProps> = () => {
   const { state, signUp } = useAuthorization();
-  const toast = useToast();
+  const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
+  const topPadding = (headerHeight || insets.top) + 32;
   const { control, handleSubmit, formState } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     mode: 'onChange',
     defaultValues: { name: '', email: '', password: '', acceptTos: false },
   });
 
-  const submit = handleSubmit(async (values) => {
-    try {
-      const response = await signUp({
-        name: values.name,
-        email: values.email,
-        password: values.password,
-      });
-      toast.success(response.message);
-      // No imperative navigation — a successful signUp updates useAuthorization,
-      // RootNavigator's `useShowMain` hook flips to true, and the Main group
-      // becomes active with MyAccount.
-    } catch {
-      // error surfaced via useAuthorization state
-    }
-  });
+  const submit = handleSubmit((values) =>
+    signUp({ name: values.name, email: values.email, password: values.password }),
+  );
 
   const submitting = state.status === 'submitting';
   const disableSubmit = submitting || !formState.isValid;
 
   return (
-    <Screen>
+    <Screen edges={['bottom']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
       >
-        {/* No back button — SignUp is the sole screen in its navigation group,
-            so there's nothing to go back to. */}
-        <View style={styles.header} />
-
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[styles.scroll, { paddingTop: topPadding }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -77,7 +64,7 @@ export const SignUpScreen: FC<SignUpScreenProps> = () => {
             </Typography>
           </View>
 
-          {state.error ? <ErrorBanner message={state.error} onRetry={submit} /> : null}
+          {state.error && <ErrorBanner message={state.error} onRetry={submit} />}
 
           <View style={styles.fields}>
             <Controller
@@ -191,13 +178,8 @@ export const SignUpScreen: FC<SignUpScreenProps> = () => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
   scroll: {
     paddingHorizontal: 20,
-    paddingTop: 32,
     paddingBottom: 24,
     gap: 32,
   },
